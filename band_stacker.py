@@ -78,14 +78,16 @@ class BandStacker:
         return action
 
     def initGui(self):
+        """Create the menu entries and toolbar icons inside the QGIS GUI."""
         icon_path = ':/icon.png'
-        self.add_action(
-            icon_path,
-            text=self.tr(u'Band Stacker'),
-            callback=self.run,
-            parent=self.iface.mainWindow())
+        self.toolbar = self.iface.addToolBar(u'Band Stacker')
+        self.toolbar.setObjectName("Band Stacker")
 
-        self.first_start = True
+        self.action_BandStack = self.action = QAction(QIcon(icon_path),u"Band Stacker", self.iface.mainWindow())
+        self.action_BandStack.triggered.connect(self.run)
+        self.iface.addPluginToRasterMenu(u"&Band Stacker", self.action)
+        
+        self.toolbar.addActions([self.action_BandStack])
 
     def select_output_file(self):
         filename, _filter = QFileDialog.getSaveFileName(
@@ -95,17 +97,13 @@ class BandStacker:
 
     def unload(self):
         for action in self.actions:
-            self.iface.removePluginRasterMenu(
-                self.tr(u'&Band Stacker'),
-                action)
+            self.iface.removePluginRasterMenu(self.tr(u'&Band Stacker'),action)
             self.iface.removeToolBarIcon(action)
 
     def run(self):
-        if self.first_start:
-            self.first_start = False
-            self.dlg = BandStackerDialog()
-            self.dlg.browseButton.clicked.connect(self.select_output_file)
-            self.dlg.stackBandsButton.clicked.connect(self.stack_bands)
+        self.dlg = BandStackerDialog()
+        self.dlg.browseButton.clicked.connect(self.select_output_file)
+        self.dlg.stackBandsButton.clicked.connect(self.stack_bands)
 
         self.dlg.outputFileName.clear()
         self.dlg.layerListWidget.clear()
@@ -173,4 +171,11 @@ class BandStacker:
             out_ds.GetRasterBand(i+1).WriteArray(stacked_array[i])
 
         out_ds = None
-        self.iface.messageBar().pushMessage("Success", "Stacking completed successfully!", level=1)
+        
+        # Add the output raster to QGIS
+        output_layer = iface.addRasterLayer(output_file_name, os.path.basename(output_file_name))
+        if not output_layer:
+            self.iface.messageBar().pushMessage("Error", "Failed to load the output raster layer into QGIS.", level=3)
+        else:
+            self.iface.messageBar().pushMessage("Success", "Stacking completed successfully and layer added to QGIS!", level=1)
+        # self.iface.messageBar().pushMessage("Success", "Stacking completed successfully!", level=1)
