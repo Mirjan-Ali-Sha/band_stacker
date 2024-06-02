@@ -8,7 +8,7 @@
                              -------------------
         begin                : 2024-06-02
         copyright            : (C) 2024 by Mirjan Ali Sha
-        email                : mirjanalisha@gmail.com
+        email                : mastools.help@gmail.com
         git sha              : $Format:%H$
  ***************************************************************************/
 

@@ -8,7 +8,7 @@
 
 """
 
-__author__ = 'mirjanalisha@gmail.com'
+__author__ = 'mastools.help@gmail.com'
 __date__ = '2024-06-02'
 __copyright__ = 'Copyright 2024, Mirjan Ali Sha'
 

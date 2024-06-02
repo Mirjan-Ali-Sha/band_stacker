@@ -6,9 +6,9 @@
 name=Band Stacker
 qgisMinimumVersion=3.0
 description=A plugin to stack bands from selected raster layers
-version=0.1
+version=0.2
 author=Mirjan Ali Sha
-email=mirjanalisha@gmail.com
+email=mastools.help@gmail.com
 
 about=A plugin to stack bands from selected raster layers.
 

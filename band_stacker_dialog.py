@@ -9,7 +9,7 @@
         begin                : 2024-06-02
         git sha              : $Format:%H$
         copyright            : (C) 2024 by Mirjan Ali Sha
-        email                : mirjanalisha@gmail.com
+        email                : mastools.help@gmail.com
  ***************************************************************************/
 
 /***************************************************************************
@@ -42,12 +42,3 @@ class BandStackerDialog(QtWidgets.QDialog, FORM_CLASS):
         # http://qt-project.org/doc/qt-4.8/designer-using-a-ui-file.html
         # #widgets-and-dialogs-with-auto-connect
         self.setupUi(self)
-
-
-# from PyQt5 import QtWidgets
-# from .BandStacker_dialog_base import Ui_BandStackerDialogBase
-
-# class BandStackerDialog(QtWidgets.QDialog, Ui_BandStackerDialogBase):
-#     def __init__(self, parent=None):
-#         super().__init__(parent)
-#         self.setupUi(self)
