@@ -5,7 +5,7 @@ from qgis.PyQt.QtWidgets import QAction, QFileDialog, QTableWidgetItem, QAbstrac
 from .resources import *
 from qgis.core import QgsProject
 from qgis.utils import iface
-from PyQt5.QtWidgets import QAction, QFileDialog, QTableWidgetItem
+from PyQt5.QtWidgets import QAction, QFileDialog, QTableWidgetItem, QToolBar
 
 from .band_stacker_dialog import BandStackerDialog
 from osgeo import gdal
@@ -14,23 +14,11 @@ import os
 import re
 
 class BandStacker:
-    """QGIS Plugin Implementation."""
-
     def __init__(self, iface):
-        """Constructor.
-
-        :param iface: An interface instance that will be passed to this class
-            which provides the hook by which you can manipulate the QGIS
-            application at run time.
-        :type iface: QgsInterface
-        """
         self.iface = iface
         self.plugin_dir = os.path.dirname(__file__)
         locale = QSettings().value('locale/userLocale')[0:2]
-        locale_path = os.path.join(
-            self.plugin_dir,
-            'i18n',
-            'BandStacker_{}.qm'.format(locale))
+        locale_path = os.path.join(self.plugin_dir, 'i18n', 'BandStacker_{}.qm'.format(locale))
 
         if os.path.exists(locale_path):
             self.translator = QTranslator()
@@ -38,53 +26,59 @@ class BandStacker:
             QCoreApplication.installTranslator(self.translator)
 
         self.actions = []
-        self.menu = self.tr(u'&Band Stacker')
+        self.menu = self.tr(u'&MAS Raster Processing')  # Common menu name
+        self.toolbar = None
         self.first_start = None
-        self.select_all_state = True  # Added to keep track of the select all/unselect all state
 
     def tr(self, message):
         return QCoreApplication.translate('BandStacker', message)
 
-    def add_action(
-        self,
-        icon_path,
-        text,
-        callback,
-        enabled_flag=True,
-        add_to_menu=True,
-        add_to_toolbar=True,
-        status_tip=None,
-        whats_this=None,
-        parent=None):
-        
+    def initGui(self):
+        icon_path = ':/icon.png'
+        # Check if the toolbar already exists, if not create it
+        self.toolbar = self.iface.mainWindow().findChild(QToolBar, 'MASRasterProcessingToolbar')
+        if self.toolbar is None:
+            self.toolbar = self.iface.addToolBar(u'MAS Raster Processing')
+            self.toolbar.setObjectName('MASRasterProcessingToolbar')
+
+        self.action_BandStacker = QAction(QIcon(icon_path), u"&Band Stacker", self.iface.mainWindow())
+        self.action_BandStacker.triggered.connect(self.run)
+        self.iface.addPluginToRasterMenu(self.menu, self.action_BandStacker)
+        self.toolbar.addAction(self.action_BandStacker)
+        self.actions.append(self.action_BandStacker)
+
+    def add_action(self, icon_path, text, callback, enabled_flag=True, add_to_menu=True, add_to_toolbar=True, status_tip=None, whats_this=None, parent=None):
         icon = QIcon(icon_path)
         action = QAction(icon, text, parent)
         action.triggered.connect(callback)
         action.setEnabled(enabled_flag)
 
-        if status_tip is not None:
-            action.setStatusTip(status_tip)
-
-        if whats_this is not None:
-            action.setWhatsThis(whats_this)
-
         if add_to_toolbar:
-            self.iface.addToolBarIcon(action)
-
+            self.toolbar.addAction(action)
+        if add_to_menu:
+            self.iface.addPluginToRasterMenu(self.menu, action)
         self.actions.append(action)
         return action
 
-    def initGui(self):
-        """Create the menu entries and toolbar icons inside the QGIS GUI."""
-        icon_path = ':/icon.png'
-        self.toolbar = self.iface.addToolBar(u'Band Stacker')
-        self.toolbar.setObjectName("Band Stacker")
+    def unload(self):
+        for action in self.actions:
+            self.iface.removePluginMenu(self.tr(u'&MAS Raster Processing'), action)
+            self.iface.removeToolBarIcon(action)
+        if self.toolbar:
+            del self.toolbar
 
-        self.action_BandStack = QAction(QIcon(icon_path), u"Band Stacker", self.iface.mainWindow())
-        self.action_BandStack.triggered.connect(self.run)
-        self.iface.addPluginToRasterMenu(u"&Band Stacker", self.action_BandStack)
+
+    # def initGui(self):
+    #     """Create the menu entries and toolbar icons inside the QGIS GUI."""
+    #     icon_path = ':/icon.png'
+    #     self.toolbar = self.iface.addToolBar(u'Band Stacker')
+    #     self.toolbar.setObjectName("Band Stacker")
+
+    #     self.action_BandStack = QAction(QIcon(icon_path), u"Band Stacker", self.iface.mainWindow())
+    #     self.action_BandStack.triggered.connect(self.run)
+    #     self.iface.addPluginToRasterMenu(u"&Band Stacker", self.action_BandStack)
         
-        self.toolbar.addActions([self.action_BandStack])
+    #     self.toolbar.addActions([self.action_BandStack])
 
     def select_output_file(self):
         filename, _filter = QFileDialog.getSaveFileName(
